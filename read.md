@@ -50,9 +50,9 @@ A critical part of this project was the systematic identification of RAG failure
 
 To measure success beyond "it looks right," I utilized the following framework:
 
-* **Faithfulness:** Does the answer match the retrieved context? (Prevents Hallucinations).
+* **Faithfulness (Groundedness):** Does the answer match the retrieved context? (Prevents Hallucinations).
 * **Answer Relevancy:** Does the response actually address the user's specific query?.
-* **Context Precision:** Are the retrieved chunks truly relevant, or is there too much noise?.
+* **Context Precision (Context Relevance):** Are the retrieved chunks truly relevant, or is there too much noise?.
 
 <img width="1300" height="430" alt="image" src="https://github.com/user-attachments/assets/4140dcff-230a-46da-a346-718362bf3c4b" />
 
