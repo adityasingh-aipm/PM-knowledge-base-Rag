@@ -1,6 +1,7 @@
 # 🚀 Technical Deep Dive: The PM Interview Coach (RAG)
 
 **Author:** Aditya Singh | **Project Scope:** Local RAG Implementation & Failure Mode Audit
+(https://colab.research.google.com/#scrollTo=rm8U8JCDRH77)
 
 ## 1. Executive Summary
 
