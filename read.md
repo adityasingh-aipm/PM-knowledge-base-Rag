@@ -149,10 +149,56 @@ To create an effective product strategy, you should define the following key com
 
 A successful strategy should be visible to all stakeholders and serve as a guide for both inbound and outbound product management throughout the product creation process.
 
+```markdown
+# The Iterative Optimization Journey
+
+The evaluation was not a one-time event but a series of **"Product Sprints"** to fix specific failure modes:
+
+## Phase 1 (The Naive Baseline)
+- **Approach:** Standard chunking (**500 chars**).
+- **Result:** Low accuracy. Information was fragmented across chunks, leading to incomplete answers.
+
+## Phase 2 (The Data Architecture Pivot)
+- **Approach:** Increased chunk size to **1000 chars** and overlap to **100**.
+- **Result:** Context Precision jumped to **0.8750**, proving the retriever was now finding the **"whole"** answer.
+
+## Phase 3 (The Prompt Guardrail)
+- **Approach:** Implemented strict **"negative constraints"** (e.g., *"Do not use outside knowledge"*).
+- **Result:** Faithfulness increased to **0.72**, significantly reducing hallucinations compared to the baseline.
+
+---
+
+# Final Evaluation Results
+
+The final audit was conducted using the **Ragas (RAG Assessment) framework**.
+
+## Final Metric Table
+
+| Metric             | Score  | Industry Benchmark | Interpretation & PM Action |
+|-------------------|--------|-------------------|----------------------------|
+| Context Precision | 0.8750 | > 0.80            | **Excellent.** The retriever consistently places the most relevant information at the top of the results. |
+| Faithfulness      | 0.7231 | > 0.90            | **Moderate.** While improved, 28% of statements still lack direct support. **Action:** Implement Few-Shot Prompting. |
+| Answer Relevancy  | 0.6812 | > 0.80            | **Good.** The answers are on-topic but could be more concise. **Action:** Optimize for brevity and directness. |
+
+---
+
+# Final PM Interpretation
+
+## The Successes
+The system's strongest asset is its **Retrieval Accuracy**. With a Precision of **0.875**, the **"Inventory Management"** (chunking and embedding) is production-ready. The system successfully handles complex queries about PM frameworks like **SMART goals** and **MoSCoW**.
+
+## The Challenges (Roadmap for V2.0)
+The current bottleneck is **Groundedness**. A Faithfulness score of **0.72** indicates the model occasionally relies on its own training data rather than the provided PDF.
+
+### Proposed Solution
+Transition from a simple prompt to a **"Self-RAG"** architecture where the model is asked to cite specific **page numbers for every claim** it makes. This would provide the transparency required for high-stakes interview coaching.
+
+# The Conclusion
+The project successfully demonstrates a functional **RAG pipeline** that prioritizes **source-truth over model-creativity**. It is a robust prototype that solves the **"lost-in-the-middle"** problem and effectively manages semi-structured PDF data.
+```
 
 ## 5. Future Roadmap
 
 * **Hybrid Search:** Combine keyword (BM25) and vector search to improve retrieval of specific terms like "MoSCoW".
 * **Agentic RAG:** Use an agent to decompose multi-part questions into sub-queries for better synthesis.
-* **Automated Eval:** Integrate **RAGAS** for automated scoring of response quality in the CI/CD pipeline.
 
