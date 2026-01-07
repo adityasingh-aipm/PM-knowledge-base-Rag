@@ -1,0 +1,142 @@
+# 🚀 Technical Deep Dive: The PM Interview Coach (RAG)
+
+**Author:** Aditya Singh | **Project Scope:** Local RAG Implementation & Failure Mode Audit
+
+## 1. Executive Summary
+
+This project implements a Retrieval-Augmented Generation (RAG) system to solve the problem of **LLM Knowledge Cutoffs** and **Hallucinations** in specialized domains (Product Management interviews). By grounding a generative model in a verified knowledge base, the system provides traceable, factually accurate coaching.
+
+---
+
+## 2. System Architecture
+
+The pipeline is divided into two distinct phases: **Indexing** (offline) and **Inference** (online/query-time).
+
+### A. Indexing Pipeline (Data Engineering)
+
+1. **Ingestion:** Semi-structured data (PDF) is loaded using `PyPDFLoader`.
+2. **Semantic Chunking:** Documents are split into **500-character blocks** with a **50-character overlap** using `RecursiveCharacterTextSplitter`.
+* *PM Rationale:* This ensures context is preserved across chunk boundaries, preventing "fragmented context" failure.
+
+
+3. **Vector Embedding:** Chunks are transformed into 384-dimensional dense vectors using the `all-MiniLM-L6-v2` model.
+4. **Vector Storage:** Embeddings are persisted in **ChromaDB**, an in-memory vector store optimized for similarity searches.
+
+### B. Inference Pipeline (Retrieval & Generation)
+
+1. **Query Encoding:** The user query is converted into a vector using the same embedding model.
+2. **Semantic Retrieval:** A **Cosine Similarity** search identifies the top  (where ) most relevant document chunks.
+3. **Augmentation & Prompting:** Retrieved chunks are injected into a "Grounding Prompt" that restricts the LLM to the provided context.
+4. **Generation:** **Gemini 3 Flash (Preview)** generates a response at `Temperature = 0` to ensure deterministic, factual output.
+
+---
+
+## 3. Failure Mode Analysis (The PM "Audit")
+
+A critical part of this project was the systematic identification of RAG failure points.
+
+| Failure Mode | Definition | Observed In-Project Behavior | PM Mitigation Strategy |
+| --- | --- | --- | --- |
+| **Knowledge Gap** | Query refers to data not in the corpus. | System correctly stated "I don't know" for non-PM topics. | Strict **Negative Constraints** in system prompts. |
+| **Context Fragmentation** | Relevant info is split across chunks. | Initial 200-char chunks led to partial, confusing answers. | Increased chunk size to **500** with **10% overlap**. |
+| **Retrieval Noise** | Top results are irrelevant (e.g., Table of Contents). | Search for "skills" returned generic page headers. | Implement **Metadata Filtering** or a **Reranker**. |
+| **Model Deprecation** | API changes break model aliases. | Error 404 when calling `gemini-pro`. | Shift to **Stable Versioned Names** (e.g., `gemini-1.5-flash-002`). |
+| **Citation Hallucination** | System claims support that isn't there. | AI attributed a framework to the wrong page. | Implement **Citation Scaffolding** and RAGAS evaluation. |
+
+---
+
+## 4. Evaluation Metrics (The "RAG Triad")
+
+To measure success beyond "it looks right," I utilized the following framework:
+
+* **Faithfulness:** Does the answer match the retrieved context? (Prevents Hallucinations).
+* **Answer Relevancy:** Does the response actually address the user's specific query?.
+* **Context Precision:** Are the retrieved chunks truly relevant, or is there too much noise?.
+
+<img width="1300" height="430" alt="image" src="https://github.com/user-attachments/assets/4140dcff-230a-46da-a346-718362bf3c4b" />
+
+    AI RESPONSE:
+Based on the provided context, key skills for a Product Manager include:
+
+*   **Goal Setting:** The ability to create **SMART** goals (Specific, Measurable, Agreed upon, Realistic, and Time-bound).
+*   **Strategic Alignment:** Ensuring that product goals are consistently aligned with both the overall product strategy and the broader business strategy.
+*   **Prioritization:** Utilizing frameworks like **MoSCoW** (Must Have, Should Have, Could Have, Won’t Have) to categorize requirements and manage the product backlog effectively.
+*   **Backlog Management:** Organizing tasks and user stories to focus on the most vital requirements that provide the highest value to users.
+
+--- SOURCES USED ---
+- pm_guide.pdf
+- pm_guide.pdf
+- pm_guide.pdf
+- pm_guide.pdf
+---
+<img width="1289" height="426" alt="image" src="https://github.com/user-attachments/assets/f4a9f793-b2e4-46ae-81ec-a05b905d154c" />
+--- MATCH 1 ---
+manager needs to be the leader who will ensure that everyone on the team is 
+working toward the same goal. 
+To be able to handle such a complex and versatile role, a great product manager 
+should be knowledgeable in several areas, most notably technology, business, and 
+user experience. 
+What Does a Product Manager Do? 
+A product manager is responsible for setting a strategic plan for product creation and 
+making sure that the plan is executed. In other words, a product manager is in
+
+
+--- MATCH 2 ---
+manager needs to be the leader who will ensure that everyone on the team is 
+working toward the same goal. 
+To be able to handle such a complex and versatile role, a great product manager 
+should be knowledgeable in several areas, most notably technology, business, and 
+user experience. 
+What Does a Product Manager Do? 
+A product manager is responsible for setting a strategic plan for product creation and 
+making sure that the plan is executed. In other words, a product manager is in
+
+
+--- MATCH 3 ---
+8 
+ 
+  
+ 
+Roles in Product Management 
+The concept of product management includes many different roles such as chief 
+product officer, director of product management, product manager, product owner, 
+and product marketing manager, to name just a few. 
+It’s important to keep in mind that product management and project management 
+are two different roles.  
+There can be one person or a whole team in charge of product management. The
+
+
+--- MATCH 4 ---
+8 
+ 
+  
+ 
+Roles in Product Management 
+The concept of product management includes many different roles such as chief 
+product officer, director of product management, product manager, product owner, 
+and product marketing manager, to name just a few. 
+It’s important to keep in mind that product management and project management 
+are two different roles.  
+There can be one person or a whole team in charge of product management. The
+
+
+--- MATCH 5 ---
+4 
+ 
+  
+Introduction To Product Management 
+Product management is the practice of planning, developing, marketing, and 
+continuous improvement of a company’s product or products. 
+The idea of product management first appeared in the early 30s with a memo 
+written by the president of Procter & Gamble, Neil H. McElroy, where he introduced 
+the idea of a product manager — a “brand man” completely responsible for a brand 
+and instrumental to its growth.
+
+
+
+## 5. Future Roadmap
+
+* **Hybrid Search:** Combine keyword (BM25) and vector search to improve retrieval of specific terms like "MoSCoW".
+* **Agentic RAG:** Use an agent to decompose multi-part questions into sub-queries for better synthesis.
+* **Automated Eval:** Integrate **RAGAS** for automated scoring of response quality in the CI/CD pipeline.
+
